@@ -172,6 +172,10 @@ while(true)
 
 		//easyDecrypt($Name) . "|" . easyDecrypt($Password) . "|" . easyDecrypt($Website) . ";
 
+		$Name = substr($name_encrypted, 0, 87);
+		$Password = substr($password_encrypted, 89, 175);
+		$Website = substr($website_encrypted, 177, 264);
+		
 
 	}
 
