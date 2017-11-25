@@ -7,14 +7,16 @@
 $firstTime = TRUE;
 $PassPath = __DIR__ . "\\pwd.nb2";
 $MasterPath = __DIR__ . "\\master.nb2";
+$CountingPath = __DIR__ . "\\counting";
 
 $PassHandle = "";
 $MasterHandle = "";
+$CountingHandle = "";
 
 
 
 //Check for First time Run or invalid Password Files
-if(file_exists($PassPath) && file_exists($MasterPath) && filesize($MasterPath) == 88)
+if(file_exists($PassPath) && file_exists($MasterPath) && filesize($MasterPath) == 88 && file_exists($CountingPath))
 	$firstTime = FALSE;
 
 //First Time Setup
@@ -29,13 +31,15 @@ if($firstTime)
 		unlink($PassPath);
 	if(file_exists($MasterPath))
 		unlink($MasterPath);
+	if(file_exists($CountingPath))
+		unlink($CountingPath);
 
 	//Get UserInput for MasterPassword
-	$tempMasterPW = Input("\nPlease decide on a MasterPassword (this can be changed later): ");
+	$MasterPW = Input("\nPlease decide on a MasterPassword (this can be changed later): ");
 
 	$MasterHandle = fopen($MasterPath, "x");
 
-	$data = easyEncrypt($tempMasterPW);
+	$data = easyEncrypt($MasterPW);
 
 	fwrite($MasterHandle, $data);
 	fclose($MasterHandle);
@@ -44,6 +48,10 @@ if($firstTime)
 	//Format of $PassPath:
 	//                          Email/Username, Website, hashedPassword
 	$PassHandle = fopen($PassPath, "x");
+	fclose($PassHandle);
+
+	$CountingHandle = fopen($CountingPath, "x");
+	fwrite($CountingHandle, 1);
 	fclose($PassHandle);
 
 }
@@ -78,7 +86,11 @@ while(true)
 {
 	CLS();
 
-	print	"\t\t\tOptions\n\n\n\n\n\n1: Add Account\t\t\t\t2: View Account\n3: Change MasterPassword\t\t4: Exit Program\n\n\n";
+	print "\t\t\tOptions\n\n\n\n\n\n";
+	print "1: Add Account\t\t\t\t";
+	print "2: View Account\n";
+	print "3: Change MasterPassword\t\t";
+	print "4: Exit Program\n\n\n";
 
 	$input = Input("What do you want to do today: ");
 	handleInput($input);
@@ -87,23 +99,18 @@ while(true)
 
 
 
-
-
-
-
-
-
 {
-	function Input($text){
+	function Input($text = ""){
 		print $text;
 		return trim(fgets(STDIN));
 	}
 
 	function easyEncrypt($tempData){
+		global $MasterPW;
 		$ivlen = openssl_cipher_iv_length($cipher="AES-128-CBC");
 		$iv = openssl_random_pseudo_bytes($ivlen);
-		$ciphertext_raw = openssl_encrypt($tempData, $cipher, $tempData, $options=OPENSSL_RAW_DATA, $iv);
-		$hmac = hash_hmac('sha256', $ciphertext_raw, $tempData, $as_binary=true);
+		$ciphertext_raw = openssl_encrypt($tempData, $cipher, $MasterPW, $options=OPENSSL_RAW_DATA, $iv);
+		$hmac = hash_hmac('sha256', $ciphertext_raw, $MasterPW, $as_binary=true);
 		$ciphertext = base64_encode( $iv.$hmac.$ciphertext_raw );
 		return $ciphertext;
 	}
@@ -134,7 +141,7 @@ while(true)
 				AddAccount();
 				break;
 			case 2:
-				ViewAccount();
+				ListAccounts();
 				break;
 			case 3:
 				ChangeMasterPW();
@@ -146,36 +153,96 @@ while(true)
 
 	function AddAccount(){
 		global $PassPath;
-		global $PassHandle;
 		global $MasterPath;
+		global $CountingPath;
 		fclose($PassHandle);
 
 		$PassHandle = fopen($PassPath, "a");
 
 		CLS();
 		$Name = addslashes(Input("AccountName/Email: "));
-		$Password = addslashes(Input("Password for said Account: "));
-		$Website = addslashes(Input("Website for this Account: "));
+		$Password = addslashes(Input("Password: "));
+		$Website = addslashes(Input("Website: "));
 
 		
 
-		$stringToWrite = easyEncrypt($Name) . "|" . easyEncrypt($Password) . "|" . easyEncrypt($Website) . ";\r\n";
+		$stringToWrite = easyEncrypt($Name) . "" . easyEncrypt($Password) . "" . easyEncrypt($Website) . ";\r\n";
 
 		fwrite($PassHandle, $stringToWrite);
 		fclose($PassHandle);
 
+		print "Activating";
+		SlowDots();
+
+		print "\n\nAccount added!";
+
+
+		$CountingHandle = fopen($CountingPath, "r");
+		$count = (int)fread($CountingHandle, 32);
+		$count += 1;
+		fclose($CountingHandle);
+
+		$CountingHandle = fopen($CountingPath, "w");
+
+		fwrite($CountingHandle, $count);
+		fclose($CountingHandle);
+
+		sleep(2);
+	}
+
+	function ListAccounts(){
+		global $PassPath;
+		global $MasterPath;
+		global $CountingPath;
+		CLS();
+
+		$PassHandle = fopen($PassPath, "r");
+		$CountingHandle = fopen($CountingPath, "r");
+
+		$count = (int)fread($CountingHandle, sizeof($CountingPath));
+
+		//File  End-of-File
+		for ($i = 1; $i < $count; $i++) {
+
+			$data = fgets($PassHandle);
+
+			$ListOfAccounts[$i] = $data;
+
+			print $i . ":\t" . easyDecrypt(GetWebsiteData($data)) . "\n";
+		}
+		fclose($PassHandle);
+		$accountNumber = Input("Which Account you want to see: ");
+
+	}
+
+	function GetAccountData($data){
+		return substr($data, 0, 88);
+	}
+
+	function GetPasswordData($data){
+		return substr($data, 88, 88);
+	}
+
+	function GetWebsiteData($data){
+		return substr($data, 176, 88);
 	}
 
 	function ViewAccount(){
 		global $PassHandle;
 		global $PassPath;
 
-		//easyDecrypt($Name) . "|" . easyDecrypt($Password) . "|" . easyDecrypt($Website) . ";
-
-		$Name = substr($name_encrypted, 0, 87);
-		$Password = substr($password_encrypted, 89, 175);
-		$Website = substr($website_encrypted, 177, 264);
+		$PassHandle = fopen($PassPath, "r");
+		$data = fread($PassHandle, 88*3);
 		
+		$Name = GetAccountData($data);
+		$Password = GetPasswordData($data);
+		$Website = GetWebsiteData($data);
+
+		print "Account Name: " . easyDecrypt($Name) . "\n";
+		print "Password: " . easyDecrypt($Password) . "\n";
+		print "Website: " . easyDecrypt($Website) . "\n";
+
+		Input("\nPress [ENTER] to go to the main menu.");
 
 	}
 
@@ -217,11 +284,11 @@ while(true)
 
 	function SlowDots(){
 		print ".";
-		usleep(750000);
+		usleep(rand(250000,750000));
 		print ".";
-		usleep(500000);
+		usleep(rand(250000,750000));
 		print ".";
-		usleep(250000);
+		usleep(rand(250000,750000));
 	}
 }
 
