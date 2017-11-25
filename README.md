@@ -7,3 +7,8 @@ List of what i use in this project:
 -loops (for & while)
 -global variables
 -file-system shenanigans
+
+
+Data-Format for pwd.nb2:
+
+Encrypted(AccountName)|Encrypted(Password)|Encrypted(Website);
