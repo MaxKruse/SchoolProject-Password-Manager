@@ -1,5 +1,4 @@
 <?php
-
 //Setup Variables
 
 $firstTime = TRUE;
@@ -41,14 +40,12 @@ if($firstTime)
 
 }
 
-//Main Routine
-
+//Login
 CLS();
-
 $MasterPW = Input("Please input your MasterPassword: ");
-
 $decodeResult = easyDecrypt(FileRead($MasterPath));
 
+//Authenticate
 if($MasterPW == $decodeResult)
 {
 	print "Success! Logging you in";
@@ -60,6 +57,8 @@ else
 	exit(-1);
 }
 
+
+//Main Menu
 while(true)
 {
 	CLS();
@@ -74,6 +73,7 @@ while(true)
 	handleInput($input);
 }
 
+//Function Collection
 
 {
 	function WriteFile($pathOfFile, $data, $mode = "w"){
