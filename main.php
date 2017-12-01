@@ -21,15 +21,17 @@ if($firstTime)
 	print "First time Setup";
 	SlowDots();
 	//Delete all Files for Now
-	if(file_exists($PassPath))
-		unlink($PassPath);
 	if(file_exists($MasterPath))
 		unlink($MasterPath);
+		
+	if(file_exists($PassPath))
+		unlink($PassPath);
+
 	if(file_exists($CountingPath))
 		unlink($CountingPath);
 
 	//Get UserInput for MasterPassword
-	$MasterPW = Input("\nPlease decide on a MasterPassword (this can be changed later): ");
+	$MasterPW = InputMasterPW();
 
 	$data = easyEncrypt($MasterPW);
 
@@ -235,6 +237,7 @@ while(true)
 
 	function ChangeMasterPW(){
 		global $MasterPath;
+		global $MasterPW;
 
 		if(!unlink($MasterPath))
 		{
@@ -247,14 +250,14 @@ while(true)
 		Sleep(1);
 		CLS();
 
-		$tempMasterPW = InputMasterPW();
+		$MasterPW = InputMasterPW();
+		$data = easyEncrypt($MasterPW);
+		WriteFile($MasterPath, $data);
 
-		$data = easyEncrypt($tempMasterPW);
-		WriteFile($MasterPath, $data, "w");
 		usleep(1500000);
 		print "MasterPassword changed. Restarting";
 		SlowDots();
-		sleep(2);
+		sleep(1);
 		CLS();
 		exit(2);
 	}
