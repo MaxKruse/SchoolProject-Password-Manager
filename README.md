@@ -9,6 +9,8 @@ List of what i use in this project:
 
 -loops (for & while)
 
+-one dimensional array
+
 -global variables
 
 -file-system shenanigans
@@ -16,4 +18,4 @@ List of what i use in this project:
 
 Data-Format for pwd.nb2:
 
-Encrypted(AccountName)|Encrypted(Password)|Encrypted(Website);
+Encrypted(AccountName) Encrypted(Password) Encrypted(Website) [without spaces]
