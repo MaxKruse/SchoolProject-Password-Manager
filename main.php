@@ -13,6 +13,8 @@ $PassHandle = "";
 $MasterHandle = "";
 $CountingHandle = "";
 
+$ListOfAccounts = [];
+
 
 
 //Check for First time Run or invalid Password Files
@@ -44,11 +46,6 @@ if($firstTime)
 	fwrite($MasterHandle, $data);
 	fclose($MasterHandle);
 
-
-	//Format of $PassPath:
-	//                          Email/Username, Website, hashedPassword
-	$PassHandle = fopen($PassPath, "x");
-	fclose($PassHandle);
 
 	$CountingHandle = fopen($CountingPath, "x");
 	fwrite($CountingHandle, 1);
@@ -194,6 +191,7 @@ while(true)
 		global $PassPath;
 		global $MasterPath;
 		global $CountingPath;
+		global $ListOfAccounts;
 		CLS();
 
 		$PassHandle = fopen($PassPath, "r");
